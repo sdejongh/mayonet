@@ -1,10 +1,55 @@
 import re
 from napalm.ios.ios import IOSDriver
-from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX
+from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX, IOS_NAT_STATISTICS_REGEX
+
+
 
 
 class ExtendedIOSDriver(IOSDriver):
     """Custom extension of NAPALM Cisco IOS Handler"""
+
+    def get_nat_statistics(self):
+        """
+        Returns a dictionary of the 'show ip nat statistics' commands output.
+        Example:
+        {
+            'translations': {
+                'total': 1645,
+                'static': 13,
+                'dynamic': 1632,
+                'extended': 1640,
+                'peak': 4810,
+                'hits': 434766136,
+                'misses': 0
+            },
+            'interfaces': {
+                'inside': ['GigabitEthernet0/0', 'GigabitEthernet0/1'],
+                'outside': ['GigabitEthernet0/2', 'FastEthernet0/0/1']
+            }
+        }
+
+        """
+        command = "show ip nat statistics"
+        output = self._send_command(command)
+        result = re.search(IOS_NAT_STATISTICS_REGEX, output)
+        result_dict = result.groupdict()
+        statistics = {
+            "translations": {
+                "total": int(result_dict["total"]),
+                "static": int(result_dict["static"]),
+                "dynamic": int(result_dict["dynamic"]),
+                "extended": int(result_dict["extended"]),
+                "peak": int(result_dict["peak"]),
+                "hits": int(result_dict["hits"]),
+                "misses": int(result_dict["misses"]),
+            },
+            "interfaces": {
+                "inside": result_dict["inside_interfaces"].replace(" ", "").split(","),
+                "outside": result_dict["outside_interfaces"].replace(" ", "").split(","),
+            }
+
+        }
+        return statistics
 
     def get_nat_translations(self) -> list[dict]:
         """
