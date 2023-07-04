@@ -1,0 +1,2 @@
+# Extract protocol, inside/outsside local/global addresses and ports from translation line.
+IOS_NAT_TRANSLATION_REGEX = "^(?P<proto>icmp|tcp|udp)\s+(?:(?P<iga>.*):(?P<igp>\d{1,5}))\s+(?:(?P<ila>.*):(?P<ilp>\d{1,5}))\s+(?:(?P<ola>.*):(?P<olp>\d{1,5}))\s+(?:(?P<oga>.*):(?P<ogp>\d{1,5}))$"

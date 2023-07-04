@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mayonet"
+version = "2023.07.04.01"
+description = "Mayonet (Moyonnaise for Network)"
+
+readme = "README.md"
+
+requires-python = ">=3.10"
+
+authors = [
+    {email = "dejongh.st@gmail.com"},
+    {name = "Steve De Jongh"}
+]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+dependencies = [
+    'napalm ~= 4.1.0',
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
