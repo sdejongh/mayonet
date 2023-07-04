@@ -7,3 +7,5 @@ IOS_NAT_STATISTICS_REGEX = "^Total active translations: (?P<total>\d+) \((?P<sta
                              "Inside interfaces:\s*\n" \
                              "(?:\s\s(?P<inside_interfaces>.*)\n)?" \
                              "Hits: (?P<hits>\d+)\s+Misses: (?P<misses>\d+)"
+
+IOS_DHCP_SNOOPING_BINDING = "^(?P<mac>([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})\s+(?P<ip>([0-9]{1,3}\.){3}[0-9]{1,3})\s+(?P<lease>\d+)\s+(?P<type>[^\s]+)\s+(?P<vlan>\d+)\s+(?P<interface>.*)$"

@@ -1,8 +1,6 @@
 import re
 from napalm.ios.ios import IOSDriver
-from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX, IOS_NAT_STATISTICS_REGEX
-
-
+from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX, IOS_NAT_STATISTICS_REGEX, IOS_DHCP_SNOOPING_BINDING
 
 
 class ExtendedIOSDriver(IOSDriver):
@@ -75,3 +73,26 @@ class ExtendedIOSDriver(IOSDriver):
             if result is not None:
                 translations.append(result.groupdict())
         return translations
+
+    def get_ip_dhcp_snooping_bindings(self):
+        """
+        Returns a list of dictionaries. Each dictionary represents an entry for the DHCP Snooping Binding table with the
+        following keys:
+            mac:        MAC address
+            ip:         IP address
+            lease:      Lease time (sec)
+            type:       Source of the binding
+            vlan:       Vlan id
+            interface:  Interface to which the lease is bond
+        """
+        bindings = []
+        command = "show ip dhcp snooping binding"
+        output = self._send_command(command)
+        for line in output.split("\n"):
+            result = re.search(IOS_DHCP_SNOOPING_BINDING, line)
+            if result is not None:
+                binding = result.groupdict()
+                binding["lease"] = int(binding["lease"])
+                binding["vlan"] = int(binding["vlan"])
+                bindings.append(binding)
+        return bindings
