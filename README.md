@@ -19,3 +19,6 @@ Returns a dictionary NAT statistics (show ip nat statistics).
 ### get_nat_translations()
 Returns a list of all active NAT translations (show ip nat translations).
 
+### get_ntp_associations()
+Returns a list of all NTP associations (show ntp associations).
+

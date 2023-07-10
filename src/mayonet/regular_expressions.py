@@ -26,3 +26,9 @@ IOS_INTERFACES_TRUNK_STATUS_REGEX = "(?P<interface>\w+\d(?:\s?/\d+)*)\s+(?P<mode
                                     "(?P<status>\w+)\s+(?P<native_vlan>\d+)"
 
 IOS_INTERFACES_TRUNK_VLANS_REGEX = "(?P<interface>\w+\d(?:\s?/\d+)*)\s+(?P<vlans>none|(?:\d+(?:[,-]\d+)*))"
+
+IOS_NTP_ASSOCIATIONS_REGEX = "disp\n((?:.*)(?:(?:\n).*))"
+
+IOS_NTP_ASSOCIATION_INFOS_REGEX = "(?P<flags>[x#\*\+\-~\s]+)(?P<peer>[^\s]+)\s+(?P<peer_ref>[^\s]+)\s+" \
+                                 "(?P<stratum>\d+)\s+(?P<when>\d+)\s+(?P<poll>\d+)\s+(?P<reach>\d+)\s+" \
+                                 "(?P<delay>[0-9\.\-]+)\s+(?P<offset>[0-9\.\-]+)\s+(?P<disp>[0-9\.\-]+)"

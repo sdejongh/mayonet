@@ -6,7 +6,9 @@ from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX, \
     IOS_CDP_NEIGHBORS_REGEX, \
     IOS_INTERFACES_TRUNK_REGEX, \
     IOS_INTERFACES_TRUNK_STATUS_REGEX, \
-    IOS_INTERFACES_TRUNK_VLANS_REGEX
+    IOS_INTERFACES_TRUNK_VLANS_REGEX, \
+    IOS_NTP_ASSOCIATIONS_REGEX, \
+    IOS_NTP_ASSOCIATION_INFOS_REGEX
 
 
 def parse_trunk_vlans(vlan_string: str) -> list[int] or None:
@@ -205,3 +207,54 @@ class ExtendedIOSDriver(IOSDriver):
             trunks[trunk_dict["interface"]]["forwarding_vlans"] = parse_trunk_vlans(trunk_dict["vlans"])
 
         return trunks
+
+    def get_ntp_associations(self):
+        """
+        Returns a list of dictionaries. Each dictionary represents an NTP association with the following keys:
+            address:            Address of the remote ntp server
+            ref_clock:          Ref clock of the NTP server
+            stratum:            Stratum of the NTP server
+            when:               Time since last NTP packet in seconds (int)
+            poll:               Polling interval in seconds(int)
+            reach:              Peer reachability (int)
+            delay:              Round-trip delay in milliseconds (float)
+            offset:             Clock time difference (float)
+            disp:               Dispersion in seconds (float)
+            primary_synced:     Synchronized with this peer (boolean)
+            primary_unsynced:   Almost synchronized with this peer (boolean)
+            selected:           Peer selected for possible synchronization (boolean)
+            candidate:          Peer candidate for synchronization (boolean)
+            configured:         Peer is statically configured (boolean)
+        """
+        ntp_associations = []
+        command = "show ntp associations"
+        output = self._send_command(command)
+        result = re.search(IOS_NTP_ASSOCIATIONS_REGEX, output)
+
+        if result is None:
+            return ntp_associations
+
+        for line in result.group().split("\n"):
+            association = re.search(IOS_NTP_ASSOCIATION_INFOS_REGEX, line)
+            if association is None:
+                continue
+            association_dict = association.groupdict()
+            ntp_association = {
+                "address": association_dict["peer"],
+                "ref_clock": association_dict["peer_ref"],
+                "stratum": int(association_dict["stratum"]),
+                "when": int(association_dict["when"]),
+                "poll": int(association_dict["poll"]),
+                "reach": int(association_dict["reach"]),
+                "delay": float(association_dict["delay"]),
+                "offset": float(association_dict["offset"]),
+                "disp": float(association_dict["disp"]),
+                "primary_synced": True if "*" in association_dict["flags"] else False,
+                "primary_unsynced": True if "#" in association_dict["flags"] else False,
+                "selected": True if "+" in association_dict["flags"] else False,
+                "candidate": True if "-" in association_dict["flags"] else False,
+                "configured": True if "~" in association_dict["flags"] else False,
+            }
+            ntp_associations.append(ntp_association)
+
+        return ntp_associations

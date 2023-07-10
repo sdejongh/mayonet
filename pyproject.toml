@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mayonet"
-version = "2023.07.10.03"
+version = "2023.07.10.04"
 description = "Mayonet (Moyonnaise for Network)"
 
 readme = "README.md"
