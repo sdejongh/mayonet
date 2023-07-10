@@ -1,9 +1,30 @@
 import re
 from napalm.ios.ios import IOSDriver
-from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX,\
-    IOS_NAT_STATISTICS_REGEX,\
-    IOS_DHCP_SNOOPING_BINDING_REGEX,\
-    IOS_CDP_NEIGHBORS_REGEX
+from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX, \
+    IOS_NAT_STATISTICS_REGEX, \
+    IOS_DHCP_SNOOPING_BINDING_REGEX, \
+    IOS_CDP_NEIGHBORS_REGEX, \
+    IOS_INTERFACES_TRUNK_REGEX, \
+    IOS_INTERFACES_TRUNK_STATUS_REGEX, \
+    IOS_INTERFACES_TRUNK_VLANS_REGEX
+
+
+def parse_trunk_vlans(vlan_string: str) -> list[int] or None:
+    """
+    F!unction that takes a string of vlans and return a list of all included vlans.
+    Example:
+        parse_trunk_vlans('1-10,300,301') returns [1,2,3,4,5,6,7,8,9,10,300,301]
+    """
+    if vlan_string == "none":
+        return None
+    vlans = []
+    for part in vlan_string.split(","):
+        if "-" in part:
+            first, last = part.split("-")
+            vlans.extend(range(int(first), int(last) + 1))
+        else:
+            vlans.append(int(part))
+    return vlans
 
 
 class ExtendedIOSDriver(IOSDriver):
@@ -125,3 +146,62 @@ class ExtendedIOSDriver(IOSDriver):
             }
             neighbors[device_name] = device_dict
         return neighbors
+
+    def get_interfaces_trunk(self):
+        """
+        Returns a dictionary of trunks with the interface name as key and a dictionary of information as value
+        with the following keys:
+            mode:               the trunk port mode (on, auto, ...)
+            protocol:           the trunking protocol used
+            status:             the actual status of the trunk
+            native_vlan:        the native vlan on the trunk (integer)
+            allowed_vlans:      a list of all allowed vlans on the trunk (integers)
+            active_vlans:       a list of all allowed and active vlans on the trunk (integers)
+            forwarding_vlans:   a list of all allowed, active, in STP forwarding state and not pruned vlans on the trunk (integers)
+        """
+        trunks = {}
+        command = "show interfaces trunk"
+
+        # Adding missing \n at the end of the output
+        output = self._send_command(command) + "\n"
+
+        result = re.search(IOS_INTERFACES_TRUNK_REGEX, output)
+
+        if result is None:
+            return trunks
+
+        trunks_status = result.groups()[0]
+        trunks_allowed_vlans = result.groups()[1]
+        trunks_active_vlans = result.groups()[2]
+        trunks_forwarding_vlans = result.groups()[3]
+
+        for line in trunks_status.split("\n"):
+            if len(line) == 0:
+                continue
+            trunk_dict = re.search(IOS_INTERFACES_TRUNK_STATUS_REGEX, line).groupdict()
+            trunks[trunk_dict["interface"]] = {
+                "mode": trunk_dict["status"],
+                "protocol": trunk_dict["protocol"],
+                "status": trunk_dict["status"],
+                "native_vlan": int(trunk_dict["native_vlan"])
+            }
+
+        for line in trunks_allowed_vlans.split("\n"):
+            if len(line) == 0:
+                continue
+            trunk_dict = re.search(IOS_INTERFACES_TRUNK_VLANS_REGEX, line).groupdict()
+            trunks[trunk_dict["interface"]]["allowed_vlans"] = parse_trunk_vlans(trunk_dict["vlans"])
+
+        for line in trunks_active_vlans.split("\n"):
+            if len(line) == 0:
+                continue
+            trunk_dict = re.search(IOS_INTERFACES_TRUNK_VLANS_REGEX, line).groupdict()
+            trunks[trunk_dict["interface"]]["active_vlans"] = parse_trunk_vlans(trunk_dict["vlans"])
+
+        for line in trunks_forwarding_vlans.split("\n"):
+            if len(line) == 0:
+                continue
+            trunk_dict = re.search(IOS_INTERFACES_TRUNK_VLANS_REGEX, line).groupdict()
+            trunks[trunk_dict["interface"]]["forwarding_vlans"] = parse_trunk_vlans(trunk_dict["vlans"])
+
+        return trunks

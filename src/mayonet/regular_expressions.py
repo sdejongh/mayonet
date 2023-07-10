@@ -16,3 +16,13 @@ IOS_DHCP_SNOOPING_BINDING_REGEX = "^(?P<mac>([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})\
 
 IOS_CDP_NEIGHBORS_REGEX = "(?P<device>[a-zA-Z0-9\-\_\.]+)\s*\n?(?P<local_interface>\w+ \d(?:/\d+)*)\s+(?P<holdtime>\d+)\s+(?P<capabilities>\w(?:\s\w)*)\s+(?P<platform>[a-zA-Z0-9\-]+)" \
                           "\s+(?P<remote_interface>\w+ \d(?:/\d+)*)\n?"
+
+IOS_INTERFACES_TRUNK_REGEX = "Port\s+Mode\s+Encapsulation\s+Status\s+Native vlan\n((?:.*\n)*)" \
+                             "\nPort\s+Vlans allowed on trunk\n((?:.*\n)*)" \
+                             "\nPort\s+Vlans allowed and active in management domain\n((?:.*\n)*)" \
+                             "\nPort\s+Vlans in spanning tree forwarding state and not pruned\n((?:.*\n)*)"
+
+IOS_INTERFACES_TRUNK_STATUS_REGEX = "(?P<interface>\w+\d(?:\s?/\d+)*)\s+(?P<mode>\w+)\s+(?P<protocol>\w+(\.\w+)?)\s+" \
+                                    "(?P<status>\w+)\s+(?P<native_vlan>\d+)"
+
+IOS_INTERFACES_TRUNK_VLANS_REGEX = "(?P<interface>\w+\d(?:\s?/\d+)*)\s+(?P<vlans>none|(?:\d+(?:[,-]\d+)*))"
