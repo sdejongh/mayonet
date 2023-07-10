@@ -1,6 +1,9 @@
 import re
 from napalm.ios.ios import IOSDriver
-from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX, IOS_NAT_STATISTICS_REGEX, IOS_DHCP_SNOOPING_BINDING
+from mayonet.regular_expressions import IOS_NAT_TRANSLATION_REGEX,\
+    IOS_NAT_STATISTICS_REGEX,\
+    IOS_DHCP_SNOOPING_BINDING_REGEX,\
+    IOS_CDP_NEIGHBORS_REGEX
 
 
 class ExtendedIOSDriver(IOSDriver):
@@ -89,10 +92,36 @@ class ExtendedIOSDriver(IOSDriver):
         command = "show ip dhcp snooping binding"
         output = self._send_command(command)
         for line in output.split("\n"):
-            result = re.search(IOS_DHCP_SNOOPING_BINDING, line)
+            result = re.search(IOS_DHCP_SNOOPING_BINDING_REGEX, line)
             if result is not None:
                 binding = result.groupdict()
                 binding["lease"] = int(binding["lease"])
                 binding["vlan"] = int(binding["vlan"])
                 bindings.append(binding)
         return bindings
+
+    def get_cdp_neighbors(self):
+        """
+        Returns a dictionary with the neighbor device name as key and a dictionary as value.
+        Each dictionary represents a CDP neighbor entry and has the following keys:
+            local_interface:    The local interface linked to the neighbor
+            holdtime:           Time remaining before the CDP information expires
+            capabilities:       A list of letters representing the device capabilities
+            platform:           The IOS platform of the cdp neighbor
+            remote_interface:   The interface on the neighbor side.
+        """
+        command = "show cdp neighbors"
+        output = self._send_command(command)
+        result = re.findall(IOS_CDP_NEIGHBORS_REGEX, output)
+        neighbors = {}
+        for neighbor in result:
+            device_name = neighbor[0]
+            device_dict = {
+                "local_interface": neighbor[1],
+                "holdtime": int(neighbor[2]),
+                "capabilities": [capability for capability in neighbor[3].split(" ")],
+                "platform": neighbor[4],
+                "remote_interface": neighbor[5],
+            }
+            neighbors[device_name] = device_dict
+        return neighbors
