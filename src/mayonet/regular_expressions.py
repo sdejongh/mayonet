@@ -14,7 +14,8 @@ IOS_NAT_STATISTICS_REGEX = "^Total active translations: (?P<total>\d+) \((?P<sta
 IOS_DHCP_SNOOPING_BINDING_REGEX = "^(?P<mac>([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2})\s+(?P<ip>([0-9]{1,3}\.){3}[0-9]{1,3})" \
                                   "\s+(?P<lease>\d+)\s+(?P<type>[^\s]+)\s+(?P<vlan>\d+)\s+(?P<interface>.*)$"
 
-IOS_CDP_NEIGHBORS_REGEX = "(?P<device>[a-zA-Z0-9\-\_\.]+)\s*\n?(?P<local_interface>\w+ \d(?:/\d+)*)\s+(?P<holdtime>\d+)\s+(?P<capabilities>\w(?:\s\w)*)\s+(?P<platform>[a-zA-Z0-9\-]+)" \
+IOS_CDP_NEIGHBORS_REGEX = "(?P<device>[a-zA-Z0-9\-\_\.]+)\s*\n?(?P<local_interface>\w+ \d(?:/\d+)*)\s+" \
+                          "(?P<holdtime>\d+)\s+(?P<capabilities>\w(?:\s\w)*)\s+(?P<platform>[a-zA-Z0-9\-]+)" \
                           "\s+(?P<remote_interface>\w+ \d(?:/\d+)*)\n?"
 
 IOS_INTERFACES_TRUNK_REGEX = "Port\s+Mode\s+Encapsulation\s+Status\s+Native vlan\n((?:.*\n)*)" \
